@@ -13,7 +13,8 @@ public class AuthContextHolder {
     }
 
     public static Long getUserId() {
-        return userId.get();
+        //TODO 暂时写为固定ID，做完登录后修改
+        return 1L;
     }
 
     public static void removeUserId() {
