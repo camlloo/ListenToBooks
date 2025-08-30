@@ -2,11 +2,9 @@ package com.atguigu.tingshu.album.service.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
 import com.alibaba.fastjson.JSONObject;
-import com.atguigu.tingshu.album.mapper.BaseCategory1Mapper;
-import com.atguigu.tingshu.album.mapper.BaseCategory2Mapper;
-import com.atguigu.tingshu.album.mapper.BaseCategory3Mapper;
-import com.atguigu.tingshu.album.mapper.BaseCategoryViewMapper;
+import com.atguigu.tingshu.album.mapper.*;
 import com.atguigu.tingshu.album.service.BaseCategoryService;
+import com.atguigu.tingshu.model.album.BaseAttribute;
 import com.atguigu.tingshu.model.album.BaseCategory1;
 import com.atguigu.tingshu.model.album.BaseCategoryView;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -34,6 +32,8 @@ public class BaseCategoryServiceImpl extends ServiceImpl<BaseCategory1Mapper, Ba
 	private BaseCategory3Mapper baseCategory3Mapper;
     @Autowired
     private BaseCategoryViewMapper baseCategoryViewMapper;
+    @Autowired
+    private BaseAttributeMapper baseAttributeMapper;
 
 /*
 查询所以分类
@@ -41,7 +41,7 @@ public class BaseCategoryServiceImpl extends ServiceImpl<BaseCategory1Mapper, Ba
  */
     @Override
     public List<JSONObject> getBaseCategoryList() {
-        ArrayList<JSONObject> listResult = new ArrayList<>();
+        List<JSONObject> listResult = new ArrayList<>();
         //1.查询分类视图获取所有视图表中的记录共401条分类数据
         List<BaseCategoryView> allCategoryView = baseCategoryViewMapper.selectList(null);
         //2.处理一级分类，封装所有一级分类JSONObject，将一级分类对象加入到List结果
@@ -57,7 +57,7 @@ public class BaseCategoryServiceImpl extends ServiceImpl<BaseCategory1Mapper, Ba
                 //2.2.2 构建一级分类JSON对象
                 JSONObject category1 = new JSONObject();
                 category1.put("categoryId",category1Id);
-                category1.put("category1Name",category1Name);
+                category1.put("categoryName",category1Name);
                 //3.在一级分类集合内部，封装当前分类下二级分类列表，封装二级分类JSONObject，将二级分类集合加入到一级分类“categoryChild”属性中
                 //3.1 对一级分类列表采用Stream流分组，分组字段：二级分类ID
                 Map<Long, List<BaseCategoryView>> cateogry2MapList = entry1.getValue().stream().collect(Collectors.groupingBy(BaseCategoryView::getCategory2Id));
@@ -91,5 +91,10 @@ public class BaseCategoryServiceImpl extends ServiceImpl<BaseCategory1Mapper, Ba
             }
         }
         return listResult;
+    }
+
+    @Override
+    public List<BaseAttribute> getAttributeByCategory1Id(Long category1Id) {
+        return baseAttributeMapper.getAttributeByCategory1Id(category1Id);
     }
 }

@@ -1,11 +1,32 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper
-PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN"
-"http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+        PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN"
+        "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
 
 
 <mapper namespace="com.atguigu.tingshu.album.mapper.BaseAttributeMapper">
-
-
+    <resultMap id="baseAttributeMap" type="com.atguigu.tingshu.model.album.BaseAttribute" autoMapping="true">
+        <!--封装属性表中的字段-->
+        <!--id标签封装注解    result标签封装普通字段-->
+        <id column="id" property="id"/>
+        <!--collection 配置集合：封装当前属性下包含属性值列表 ofType属性指定集合泛型（属性值类型）-->
+        <collection property="attributeValueList" ofType="com.atguigu.tingshu.model.album.BaseAttributeValue" autoMapping="true">
+            <id column="base_attr_value_id" property="id"/>
+        </collection>
+    </resultMap>
+    <!--通过一条sql查询属性以及属性值-->
+    <select id="getAttributeByCategory1Id" resultMap="baseAttributeMap"
+            parameterType="java.lang.Long">
+        SELECT ba.id,
+               ba.category1_id,
+               ba.attribute_name,
+               bav.id base_attr_value_id,
+               bav.value_name
+        FROM base_attribute ba
+                 INNER JOIN
+             base_attribute_value bav ON bav.attribute_id = ba.id
+        WHERE ba.category1_id = #{category1Id}
+          AND ba.is_deleted = 0
+    </select>
 </mapper>
 
