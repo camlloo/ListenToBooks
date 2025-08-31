@@ -135,5 +135,22 @@ public class AlbumInfoServiceImpl extends ServiceImpl<AlbumInfoMapper, AlbumInfo
         trackInfoLambdaQueryWrapper.eq(TrackInfo::getAlbumId,id);
         trackInfoMapper.delete(trackInfoLambdaQueryWrapper);
     }
+    /**
+     * 根据专辑ID查询专辑信息包含专辑属性列表
+     *
+     * @param id
+     * @return
+     */
+    @Override
+    public AlbumInfo getAlbumInfo(Long id) {
+        //1.根据主键查询专辑信息
+        AlbumInfo albumInfo = albumInfoMapper.selectById(id);
+        //2.根据专辑ID查询专辑属性列表
+        LambdaQueryWrapper<AlbumAttributeValue>  lambdaQueryWrapper = new LambdaQueryWrapper<>();
+        lambdaQueryWrapper.eq(AlbumAttributeValue::getAlbumId,id);
+        List<AlbumAttributeValue> albumAttributeValues = albumAttributeValueMapper.selectList(lambdaQueryWrapper);
+        albumInfo.setAlbumAttributeValueVoList(albumAttributeValues);
+        return albumInfo;
+    }
 
 }
