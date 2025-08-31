@@ -35,6 +35,7 @@ public class FileUploadServicerImpl implements FileUploadServicer {
     public String uploadImage(MultipartFile file) {
         try {
             //1.校验上传文件是否为图片
+            //默认为1MB 通过配置文件修改为了单个文件最大10MB，多个文件最大20MB
             BufferedImage read = ImageIO.read(file.getInputStream());
             log.info("read:{}",read);
             if(read == null){

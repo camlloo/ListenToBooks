@@ -5,15 +5,18 @@ import cn.hutool.core.collection.CollectionUtil;
 import com.atguigu.tingshu.album.mapper.AlbumAttributeValueMapper;
 import com.atguigu.tingshu.album.mapper.AlbumInfoMapper;
 import com.atguigu.tingshu.album.mapper.AlbumStatMapper;
+import com.atguigu.tingshu.album.mapper.TrackInfoMapper;
 import com.atguigu.tingshu.album.service.AlbumInfoService;
 import com.atguigu.tingshu.common.constant.SystemConstant;
 import com.atguigu.tingshu.model.album.AlbumAttributeValue;
 import com.atguigu.tingshu.model.album.AlbumInfo;
 import com.atguigu.tingshu.model.album.AlbumStat;
+import com.atguigu.tingshu.model.album.TrackInfo;
 import com.atguigu.tingshu.query.album.AlbumInfoQuery;
 import com.atguigu.tingshu.vo.album.AlbumAttributeValueVo;
 import com.atguigu.tingshu.vo.album.AlbumInfoVo;
 import com.atguigu.tingshu.vo.album.AlbumListVo;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import lombok.extern.slf4j.Slf4j;
@@ -34,6 +37,8 @@ public class AlbumInfoServiceImpl extends ServiceImpl<AlbumInfoMapper, AlbumInfo
     private AlbumAttributeValueMapper albumAttributeValueMapper;
     @Autowired
     private AlbumStatMapper albumStatMapper;
+    @Autowired
+    private TrackInfoMapper trackInfoMapper;
     /**
      * 新增专辑
      * 1.向专辑信息表新增一条记录
@@ -101,6 +106,34 @@ public class AlbumInfoServiceImpl extends ServiceImpl<AlbumInfoMapper, AlbumInfo
     @Override
     public Page<AlbumListVo> getfindUserAlbumPage(Page<AlbumListVo> pageInfo, AlbumInfoQuery albumInfoQuery) {
         return albumInfoMapper.getfindUserAlbumPage(pageInfo,albumInfoQuery);
+    }
+
+    /**
+     * 根据专辑ID删除专辑
+     * 1.根据主键ID删除专辑
+     * 2.根据专辑ID删除统计列表
+     * 3.根据专辑ID删除专辑属性列表
+     * 4.根据专辑ID删除声音列表
+     * @param id
+     * @return
+     */
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void removeAlbumInfo(Long id) {
+        //1.根据主键ID删除专辑
+        albumInfoMapper.deleteById(id);
+        //2.根据专辑ID删除统计列表
+        LambdaQueryWrapper<AlbumStat> lambdaQueryWrapper = new LambdaQueryWrapper<>();
+        lambdaQueryWrapper.eq(AlbumStat::getAlbumId,id);
+        albumStatMapper.delete(lambdaQueryWrapper);
+        // 3.根据专辑ID删除专辑属性列表
+        LambdaQueryWrapper<AlbumAttributeValue> attributeValueLambdaQueryWrapper = new LambdaQueryWrapper<>();
+        attributeValueLambdaQueryWrapper.eq(AlbumAttributeValue::getAlbumId,id);
+        albumAttributeValueMapper.delete(attributeValueLambdaQueryWrapper);
+        //4.根据专辑ID删除声音列表
+        LambdaQueryWrapper<TrackInfo>  trackInfoLambdaQueryWrapper = new LambdaQueryWrapper<>();
+        trackInfoLambdaQueryWrapper.eq(TrackInfo::getAlbumId,id);
+        trackInfoMapper.delete(trackInfoLambdaQueryWrapper);
     }
 
 }
