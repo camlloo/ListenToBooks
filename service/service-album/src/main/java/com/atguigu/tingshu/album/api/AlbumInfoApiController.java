@@ -24,7 +24,6 @@ public class AlbumInfoApiController {
 
 	@Autowired
 	private AlbumInfoService albumInfoService;
-
     /**
      * TODO 该接口必须登录才能访问
      */
@@ -72,6 +71,12 @@ public class AlbumInfoApiController {
     public Result<AlbumInfo> getAlbumInfo(@PathVariable Long id){
         AlbumInfo albumInfo = albumInfoService.getAlbumInfo(id);
          return Result.ok(albumInfo);
+    }
+    @Operation(summary = "修改专辑")
+    @PutMapping("/albumInfo/updateAlbumInfo/{id}")
+    public Result updateAlbumInfo(@PathVariable("id") Long id ,@RequestBody AlbumInfoVo albumInfoVo){
+        albumInfoService.updateAlbumInfo(id,albumInfoVo);
+        return Result.ok();
     }
 }
 

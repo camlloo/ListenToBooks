@@ -152,5 +152,38 @@ public class AlbumInfoServiceImpl extends ServiceImpl<AlbumInfoMapper, AlbumInfo
         albumInfo.setAlbumAttributeValueVoList(albumAttributeValues);
         return albumInfo;
     }
+    /**
+     * 专辑修改
+     * 1.修改专辑信息
+     * 2.修改专辑属性值（先删除旧的属性，再新增）
+     *
+     * @param id          专辑ID
+     * @param albumInfoVo 修改后专辑信息
+     * @return
+     */
+    @Override
+    public void updateAlbumInfo(Long id, AlbumInfoVo albumInfoVo) {
+        //1.修改专辑信息
+        //1.1 将专辑VO转为PO对象
+        AlbumInfo albumInfo = BeanUtil.copyProperties(albumInfoVo, AlbumInfo.class);
+        albumInfo.setId(id);
+        //1.2 执行修改专辑信息
+        albumInfoMapper.updateById(albumInfo);
+        //2.修改专辑属性信息
+        //2.1 先根据专辑ID条件删除专辑属性关系(逻辑删除)
+            LambdaQueryWrapper<AlbumAttributeValue> attributeValueLambdaQueryWrapper = new LambdaQueryWrapper<>();
+            attributeValueLambdaQueryWrapper.eq(AlbumAttributeValue::getAlbumId,id);
+            albumAttributeValueMapper.delete(attributeValueLambdaQueryWrapper);
+        //2.2 再根据用户提交专辑属性新增（关联专辑ID）
+        List<AlbumAttributeValueVo> albumAttributeValueVoList = albumInfoVo.getAlbumAttributeValueVoList();
+        if(CollectionUtil.isNotEmpty(albumAttributeValueVoList)){
+            albumAttributeValueVoList.forEach(albumAttributeValueVo -> {
+                //转为PO对象 关联专辑ID
+                AlbumAttributeValue albumAttributeValue = BeanUtil.copyProperties(albumAttributeValueVo, AlbumAttributeValue.class);
+                albumAttributeValue.setAlbumId(id);
+                albumAttributeValueMapper.insert(albumAttributeValue);
+            });
+        }
+    }
 
 }
