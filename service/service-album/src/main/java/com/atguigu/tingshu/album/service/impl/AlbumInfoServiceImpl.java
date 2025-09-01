@@ -61,7 +61,7 @@ public class AlbumInfoServiceImpl extends ServiceImpl<AlbumInfoMapper, AlbumInfo
             albumInfo.setTracksForFree(5);
         }
         //目前没有平台审核端暂时写为通过
-        albumInfo.setStatus(SystemConstant.TRACK_STATUS_PASS);
+        albumInfo.setStatus(SystemConstant.ALBUM_STATUS_PASS);
         //1.3 保存专辑 得到专辑ID
         albumInfoMapper.insert(albumInfo);
         Long albumId = albumInfo.getId();
@@ -78,10 +78,10 @@ public class AlbumInfoServiceImpl extends ServiceImpl<AlbumInfoMapper, AlbumInfo
             });
         }
         //3.向专辑统计表中新增四条记录(播放数，订阅数，购买数，评论数)
-        this.saveAlbumStat(albumId,SystemConstant.TRACK_STAT_PLAY);
-        this.saveAlbumStat(albumId,SystemConstant.TRACK_STAT_COLLECT);
-        this.saveAlbumStat(albumId,SystemConstant.TRACK_STAT_PRAISE);
-        this.saveAlbumStat(albumId,SystemConstant.TRACK_STAT_COMMENT);
+        this.saveAlbumStat(albumId,SystemConstant.ALBUM_STAT_PLAY);
+        this.saveAlbumStat(albumId,SystemConstant.ALBUM_STAT_SUBSCRIBE);
+        this.saveAlbumStat(albumId,SystemConstant.ALBUM_STAT_BROWSE);
+        this.saveAlbumStat(albumId,SystemConstant.ALBUM_STAT_COMMENT);
     }
     /**
      * 初始化保存专辑统计信息
