@@ -7,6 +7,8 @@ import com.atguigu.tingshu.vo.album.AlbumListVo;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
 
+import java.util.List;
+
 public interface AlbumInfoService extends IService<AlbumInfo> {
 
 
@@ -26,4 +28,6 @@ public interface AlbumInfoService extends IService<AlbumInfo> {
     AlbumInfo getAlbumInfo(Long id);
 
     void updateAlbumInfo(Long id, AlbumInfoVo albumInfoVo);
+
+    List<AlbumInfo> findUserAllAlbumList(Long userId);
 }

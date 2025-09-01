@@ -186,4 +186,23 @@ public class AlbumInfoServiceImpl extends ServiceImpl<AlbumInfoMapper, AlbumInfo
         }
     }
 
+    /**
+     * 查询当前登录用户所有专辑列表
+     *
+     * @param userId
+     * @return
+     */
+    @Override
+    public List<AlbumInfo> findUserAllAlbumList(Long userId) {
+        //构建查询条件
+        LambdaQueryWrapper<AlbumInfo> lambdaQueryWrapper = new LambdaQueryWrapper<>();
+        //1.1根据用户id查询
+        lambdaQueryWrapper.eq(AlbumInfo::getUserId,userId)
+                .select(AlbumInfo::getId,AlbumInfo::getAlbumTitle)  //1.2 TODO指定专辑ID 专辑标题 列查询
+                .orderByDesc(AlbumInfo::getCreateTime) //1.3根据创建时间倒序
+                .last("limit 200");   //1.4 查询200条记录
+
+        return albumInfoMapper.selectList(lambdaQueryWrapper);
+    }
+
 }
