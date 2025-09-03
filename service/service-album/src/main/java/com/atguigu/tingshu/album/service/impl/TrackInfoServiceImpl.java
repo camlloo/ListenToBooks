@@ -170,4 +170,9 @@ public class TrackInfoServiceImpl extends ServiceImpl<TrackInfoMapper, TrackInfo
         trackInfoMapper.updateById(trackInfo);
     }
 
+    @Override
+    public void removeTrackInfo(Long id) {
+
+    }
+
 }

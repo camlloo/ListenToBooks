@@ -9,6 +9,8 @@ import lombok.Data;
 @Schema(description = "声音信息")
 public class TrackInfoVo {
 
+    @Schema(description = "声音Id")
+    private Long trackId;
 	@Positive(message = "专辑Id不能为空")
 	@Schema(description = "专辑id", required = true)
 	private Long albumId;

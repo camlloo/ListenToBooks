@@ -22,4 +22,6 @@ public interface TrackInfoService extends IService<TrackInfo> {
     TrackInfo getTrackInfo(Long id);
 
     void updateTrackInfo(Long id, TrackInfoVo trackInfoVo);
+
+    void removeTrackInfo(Long id);
 }

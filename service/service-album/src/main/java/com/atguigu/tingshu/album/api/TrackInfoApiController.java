@@ -47,7 +47,7 @@ public class TrackInfoApiController {
 
     @Operation(summary = "获取当前登录声音分页列表")
     @PostMapping("/trackInfo/findUserTrackPage/{page}/{limit}")
-    public Result<Page<TrackInfoVo>> getUserTrackByPage(@PathVariable int page, @PathVariable int limit, @RequestBody TrackInfoQuery trackInfoQuery) {
+    public Result<Page<TrackInfoVo>> getUserTrackByPage(@PathVariable int page, @PathVariable int limit, @RequestBody @Validated TrackInfoQuery trackInfoQuery) {
         //获取用户Id封装到分页查询条件对象中
         Long userId = AuthContextHolder.getUserId();
         trackInfoQuery.setUserId(userId);
@@ -69,6 +69,11 @@ public class TrackInfoApiController {
         trackInfoService.updateTrackInfo(id,trackInfoVo);
         return Result.ok();
     }
-
+    @Operation(summary = "删除声音")
+    @DeleteMapping("/trackInfo/removeTrackInfo/{id}")
+    public Result removeTrackInfo(@PathVariable Long id) {
+        trackInfoService.removeTrackInfo(id);
+        return Result.ok();
+    }
 }
 
