@@ -147,4 +147,27 @@ public class TrackInfoServiceImpl extends ServiceImpl<TrackInfoMapper, TrackInfo
     public Page<TrackInfoVo> getUserTrackByPage(Page<TrackInfoVo> pageInfo, TrackInfoQuery trackInfoQuery) {
         return trackInfoMapper.getUserTrackByPage(pageInfo,trackInfoQuery);
     }
+
+    @Override
+    public TrackInfo getTrackInfo(Long id) {
+        return trackInfoMapper.selectById(id);
+    }
+@Transactional(rollbackFor = Exception.class)
+    @Override
+    public void updateTrackInfo(Long id, TrackInfoVo trackInfoVo) {
+        //1.先获取声音信息-得到更新前声音文件唯一标识
+        TrackInfo trackInfo = trackInfoMapper.selectById(id);
+        String mediaFileId = trackInfo.getMediaFileId();
+        BeanUtil.copyProperties(trackInfoVo,trackInfo);
+        //2.调用腾讯云点播获取声音媒体信息（时长，类型，文件大小） 更新媒体信息
+        if (!mediaFileId.equals(trackInfo.getMediaFileId())) {
+            TrackMediaInfoVo trackMediaInfo = vodService.getTrackMediaInfo(trackInfo.getMediaFileId());
+            trackInfo.setMediaType(trackMediaInfo.getType());
+            trackInfo.setMediaSize(trackMediaInfo.getSize());
+            trackInfo.setMediaDuration(BigDecimal.valueOf(trackMediaInfo.getDuration()));
+        }
+        //3.更新声音信息表
+        trackInfoMapper.updateById(trackInfo);
+    }
+
 }
