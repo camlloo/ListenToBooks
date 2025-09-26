@@ -16,6 +16,8 @@ import com.atguigu.tingshu.model.album.TrackStat;
 import com.atguigu.tingshu.query.album.TrackInfoQuery;
 import com.atguigu.tingshu.vo.album.TrackInfoVo;
 import com.atguigu.tingshu.vo.album.TrackMediaInfoVo;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.qcloud.vod.VodUploadClient;
@@ -169,10 +171,43 @@ public class TrackInfoServiceImpl extends ServiceImpl<TrackInfoMapper, TrackInfo
         //3.更新声音信息表
         trackInfoMapper.updateById(trackInfo);
     }
-
+    /**
+     * 根据声音ID删除声音
+     * 0.更新当前专辑中声音序号
+     * 1.删除声音表记录
+     * 2.删除声音统计记录
+     * 3.更新专辑表中包含声音数量
+     * 4.将云点播平台的声音删除
+     * <p>
+     * id      name        orderNum
+     * 1        a              1
+     * 2        b              2 (删除该声音)
+     * 3        c              3
+     * 4        d              4
+     *
+     * @param id
+     * @return
+     */
     @Override
     public void removeTrackInfo(Long id) {
-
+        //1.更新声音表中序号（更新当前声音以后声音需要即可）
+        //1.1 根据ID查询当前删除声音信息
+        TrackInfo trackInfo = trackInfoMapper.selectById(id);
+        Integer orderNum = trackInfo.getOrderNum();
+        //1.2 更新该专辑下当前声音以后序号-1: update track_info set Border_num = order_num-1 where album_id =? and order_num>?
+        trackInfoMapper.updateTrackNum(trackInfo.getAlbumId(),orderNum);
+        //2.删除声音表记录
+        trackInfoMapper.deleteById(id);
+        //3.删除声音统计记录
+        LambdaUpdateWrapper<TrackStat> trackInfoUpdateWrapper = new LambdaUpdateWrapper<>();
+        trackInfoUpdateWrapper.eq(TrackStat::getTrackId,id);
+        trackStatMapper.delete(trackInfoUpdateWrapper);
+        //4.更新专辑表中包含声音数量
+        AlbumInfo albumInfo = albumInfoMapper.selectById(trackInfo.getAlbumId());
+        albumInfo.setIncludeTrackCount(albumInfo.getIncludeTrackCount()-1);
+        albumInfoMapper.updateById(albumInfo);
+        //5.将云点播平台的声音删除
+        vodService.deleteTrackMedia(trackInfo.getMediaFileId());
     }
 
 }

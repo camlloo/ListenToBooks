@@ -1,6 +1,7 @@
 package com.atguigu.tingshu.album.api;
 
 import com.atguigu.tingshu.album.service.AlbumInfoService;
+import com.atguigu.tingshu.common.login.KingLogin;
 import com.atguigu.tingshu.common.result.Result;
 import com.atguigu.tingshu.common.util.AuthContextHolder;
 import com.atguigu.tingshu.model.album.AlbumInfo;
@@ -30,6 +31,7 @@ public class AlbumInfoApiController {
     /**
      * TODO 该接口必须登录才能访问
      */
+    @KingLogin
     @Operation(summary = "新增专辑")
     @PostMapping("/albumInfo/saveAlbumInfo")
     public Result saveAlbumInfo(@RequestBody @Validated AlbumInfoVo albumInfoVo) {
@@ -41,12 +43,14 @@ public class AlbumInfoApiController {
     /**
      * TODO 该接口必须登录才能访问
      */
+    @KingLogin
     @Operation(summary = "分页查询当前用户的专辑列表")
     @PostMapping("/albumInfo/findUserAlbumPage/{page}/{limit}")
-    public Result<Page<AlbumListVo>> findUserAlbumPage(@PathVariable int page, @PathVariable int limit, @RequestBody AlbumInfoQuery albumInfoQuery) {
-        log.info("分页查询当前用户的专辑列表参数：{}，{}，{}", page, limit, albumInfoQuery);
+    public Result<Page<AlbumListVo>> findUserAlbumByPage(@PathVariable int page, @PathVariable int limit, @RequestBody AlbumInfoQuery albumInfoQuery) {
+       log.info("[]getUserAlbumByPage目标方法执行了");
         //1.分装用户ID查询条件
         Long userId = AuthContextHolder.getUserId();
+        log.info("用户id为：{}",userId);
         albumInfoQuery.setUserId(userId);
         //2.调用业务层完成分页查询
         //2.1构建业务层或者持久层进行分页查询所需分页对象 封装两个参数：页码和页大小
@@ -59,9 +63,10 @@ public class AlbumInfoApiController {
      * /api/album/albumInfo/removeAlbumInfo/{id}
      * 根据id删除专辑
      */
+    @KingLogin
     @Operation(summary = "根据id删除专辑")
     @DeleteMapping("/albumInfo/removeAlbumInfo/{id}")
-    public Result removeAlbumInfo(@PathVariable Long id) {
+    public Result removeAlbumInfo(@PathVariable Long id)                    {
         albumInfoService.removeAlbumInfo(id);
         return Result.ok();
     }
@@ -70,6 +75,7 @@ public class AlbumInfoApiController {
      * /api/album/albumInfo/getAlbumInfo/{id}
      * 根据id查询专辑信息
      */
+    @KingLogin
     @Operation(summary = "根据id查询编辑信息")
     @GetMapping("/albumInfo/getAlbumInfo/{id}")
     public Result<AlbumInfo> getAlbumInfo(@PathVariable Long id) {
@@ -77,6 +83,7 @@ public class AlbumInfoApiController {
         return Result.ok(albumInfo);
     }
 
+    @KingLogin
     @Operation(summary = "修改专辑")
     @PutMapping("/albumInfo/updateAlbumInfo/{id}")
     public Result updateAlbumInfo(@PathVariable("id") Long id, @RequestBody AlbumInfoVo albumInfoVo) {

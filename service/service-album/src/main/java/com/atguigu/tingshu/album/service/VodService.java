@@ -9,4 +9,10 @@ public interface VodService {
      * @return
      */
     TrackMediaInfoVo getTrackMediaInfo(String mediaFileId);
+    /**
+     * 删除云点播平台文件
+     *
+     * @param mediaFileId
+     */
+    void deleteTrackMedia(String mediaFileId);
 }

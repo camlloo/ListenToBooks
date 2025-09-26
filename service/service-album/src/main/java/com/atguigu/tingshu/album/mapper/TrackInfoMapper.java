@@ -7,6 +7,7 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
+import org.apache.ibatis.annotations.Update;
 
 @Mapper
 public interface TrackInfoMapper extends BaseMapper<TrackInfo> {
@@ -18,4 +19,11 @@ public interface TrackInfoMapper extends BaseMapper<TrackInfo> {
      * @return
      */
     Page<TrackInfoVo> getUserTrackByPage(Page<TrackInfoVo> pageInfo,@Param("vo")  TrackInfoQuery trackInfoQuery);
+    /**
+     * 批量修改声音序号
+     * @param albumId
+     * @param orderNum
+     */
+@Update("update track_info set order_num = order_num-1 where album_id =#{albumId} and order_num>#{orderNum} and is_deleted = 0")
+    void updateTrackNum(@Param("albumId") Long albumId, @Param("orderNum") Integer orderNum);
 }
