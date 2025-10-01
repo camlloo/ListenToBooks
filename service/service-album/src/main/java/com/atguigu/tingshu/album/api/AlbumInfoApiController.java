@@ -28,9 +28,7 @@ public class AlbumInfoApiController {
     @Autowired
     private AlbumInfoService albumInfoService;
 
-    /**
-     * TODO 该接口必须登录才能访问
-     */
+
     @KingLogin
     @Operation(summary = "新增专辑")
     @PostMapping("/albumInfo/saveAlbumInfo")
@@ -40,9 +38,7 @@ public class AlbumInfoApiController {
         return Result.ok();
     }
 
-    /**
-     * TODO 该接口必须登录才能访问
-     */
+
     @KingLogin
     @Operation(summary = "分页查询当前用户的专辑列表")
     @PostMapping("/albumInfo/findUserAlbumPage/{page}/{limit}")

@@ -11,4 +11,6 @@ public interface UserInfoService extends IService<UserInfo> {
     Map<String, String> wxLogin(String code);
 
     UserInfoVo getUserInfoByUserId(Long userId);
+
+    void updataUser(UserInfoVo userInfoVo);
 }

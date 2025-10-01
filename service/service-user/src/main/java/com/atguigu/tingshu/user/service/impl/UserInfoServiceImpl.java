@@ -4,7 +4,9 @@ import cn.binarywang.wx.miniapp.api.WxMaService;
 import cn.binarywang.wx.miniapp.bean.WxMaJscode2SessionResult;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.IdUtil;
+import com.atguigu.tingshu.common.constant.KafkaConstant;
 import com.atguigu.tingshu.common.constant.RedisConstant;
+import com.atguigu.tingshu.common.service.KafkaService;
 import com.atguigu.tingshu.model.user.UserInfo;
 import com.atguigu.tingshu.user.mapper.UserInfoMapper;
 import com.atguigu.tingshu.user.service.UserInfoService;
@@ -32,7 +34,8 @@ public class UserInfoServiceImpl extends ServiceImpl<UserInfoMapper, UserInfo> i
     private WxMaService wxMaService;
     @Autowired
     private RedisTemplate redisTemplate;
-
+@Autowired
+private KafkaService kafkaService;
     @Override
     public Map<String, String> wxLogin(String code) {
         try {
@@ -40,7 +43,7 @@ public class UserInfoServiceImpl extends ServiceImpl<UserInfoMapper, UserInfo> i
             WxMaJscode2SessionResult sessionInfo = wxMaService.getUserService().getSessionInfo(code);
             if (sessionInfo != null) {
                 String openid = sessionInfo.getOpenid();
-                //2.根据openId查询用户记录  TODO 固定写死OpenID odo3j4q2KskkbbW-krfE-cAxUnzU
+                //2.根据openId查询用户记录
                 LambdaQueryWrapper<UserInfo> queryWrapper = new LambdaQueryWrapper<>();
                 queryWrapper.eq(UserInfo::getWxOpenId, openid);
                 UserInfo userInfo = userInfoMapper.selectOne(queryWrapper);
@@ -48,10 +51,11 @@ public class UserInfoServiceImpl extends ServiceImpl<UserInfoMapper, UserInfo> i
                 if (userInfo == null) {
                     userInfo = new UserInfo();
                     userInfo.setWxOpenId(openid);
-                    userInfo.setNickname("听友" + IdUtil.getSnowflake());
+                    userInfo.setNickname("听友" + IdUtil.getSnowflake().nextId());
                     userInfo.setAvatarUrl("https://oss.aliyuncs.com/aliyun_id_photo_bucket/default_handsome.jpg");
                     userInfoMapper.insert(userInfo);
-                    //TODO 发送异步MQ消息，通知账户微服务初始化当前用户账户余额信息
+                    //发送异步MQ消息，通知账户微服务初始化当前用户账户余额信息
+                    kafkaService.sendMessage(KafkaConstant.QUEUE_USER_REGISTER, userInfo.getId().toString());
                 }
                 //2.2 根据OpenID获取到用户记录，
                 //3.为登录微信用户生成令牌，将令牌存入Redis中
@@ -76,5 +80,14 @@ public class UserInfoServiceImpl extends ServiceImpl<UserInfoMapper, UserInfo> i
         UserInfo userInfo = userInfoMapper.selectById(userId);
         UserInfoVo userInfoVo = BeanUtil.copyProperties(userInfo, UserInfoVo.class);
         return userInfoVo;
+    }
+
+    @Override
+    public void updataUser(UserInfoVo userInfoVo) {
+        UserInfo userInfo = new UserInfo();
+        userInfo.setId(userInfoVo.getId());
+        userInfo.setNickname(userInfoVo.getNickname());
+        userInfo.setAvatarUrl(userInfoVo.getAvatarUrl());
+        userInfoMapper.updateById(userInfo);
     }
 }

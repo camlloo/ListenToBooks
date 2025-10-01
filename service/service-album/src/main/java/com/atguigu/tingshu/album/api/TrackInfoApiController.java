@@ -1,6 +1,7 @@
 package com.atguigu.tingshu.album.api;
 
 import com.atguigu.tingshu.album.service.TrackInfoService;
+import com.atguigu.tingshu.common.login.KingLogin;
 import com.atguigu.tingshu.common.result.Result;
 import com.atguigu.tingshu.common.util.AuthContextHolder;
 import com.atguigu.tingshu.model.album.TrackInfo;
@@ -27,6 +28,7 @@ public class TrackInfoApiController {
     @Autowired
     private TrackInfoService trackInfoService;
 
+    @KingLogin
     @Operation(summary = "上传音视频文件到腾讯云点播服务")
     @PostMapping("/trackInfo/uploadTrack")
     public Result<Map<String, String>> uploadTrack(MultipartFile file) {
@@ -34,6 +36,7 @@ public class TrackInfoApiController {
         return Result.ok(fileMap);
     }
 
+    @KingLogin
     @Operation(summary = "新增声音")
     @PostMapping("/trackInfo/saveTrackInfo")
     public Result saveTrackInfo(@RequestBody @Validated TrackInfoVo trackInfoVo) {
@@ -45,6 +48,7 @@ public class TrackInfoApiController {
         return Result.ok();
     }
 
+    @KingLogin
     @Operation(summary = "获取当前登录声音分页列表")
     @PostMapping("/trackInfo/findUserTrackPage/{page}/{limit}")
     public Result<Page<TrackInfoVo>> getUserTrackByPage(@PathVariable int page, @PathVariable int limit, @RequestBody @Validated TrackInfoQuery trackInfoQuery) {
@@ -57,18 +61,23 @@ public class TrackInfoApiController {
         return Result.ok(pageInfo);
     }
 
+    @KingLogin
     @Operation(summary = "根据声音ID查询声音信息")
     @GetMapping("/trackInfo/getTrackInfo/{id}")
     public Result<TrackInfo> getTrackInfo(@PathVariable Long id) {
         TrackInfo trackInfo = trackInfoService.getTrackInfo(id);
         return Result.ok(trackInfo);
     }
+
+    @KingLogin
     @Operation(summary = "修改声音信息")
     @PutMapping("/trackInfo/updateTrackInfo/{id}")
     public Result updateTrackInfo(@PathVariable Long id, @RequestBody @Validated TrackInfoVo trackInfoVo) {
-        trackInfoService.updateTrackInfo(id,trackInfoVo);
+        trackInfoService.updateTrackInfo(id, trackInfoVo);
         return Result.ok();
     }
+
+    @KingLogin
     @Operation(summary = "删除声音")
     @DeleteMapping("/trackInfo/removeTrackInfo/{id}")
     public Result removeTrackInfo(@PathVariable Long id) {

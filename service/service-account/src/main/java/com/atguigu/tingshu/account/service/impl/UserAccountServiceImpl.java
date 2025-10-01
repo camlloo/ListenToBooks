@@ -16,4 +16,10 @@ public class UserAccountServiceImpl extends ServiceImpl<UserAccountMapper, UserA
 	@Autowired
 	private UserAccountMapper userAccountMapper;
 
+    @Override
+    public void saveUserAccount(Long aLong) {
+        UserAccount userAccount = new UserAccount();
+        userAccount.setUserId(aLong);
+        userAccountMapper.insert(userAccount);
+    }
 }
