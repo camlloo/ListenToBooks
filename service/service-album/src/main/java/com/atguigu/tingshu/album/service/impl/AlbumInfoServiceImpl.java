@@ -7,7 +7,9 @@ import com.atguigu.tingshu.album.mapper.AlbumInfoMapper;
 import com.atguigu.tingshu.album.mapper.AlbumStatMapper;
 import com.atguigu.tingshu.album.mapper.TrackInfoMapper;
 import com.atguigu.tingshu.album.service.AlbumInfoService;
+import com.atguigu.tingshu.common.constant.KafkaConstant;
 import com.atguigu.tingshu.common.constant.SystemConstant;
+import com.atguigu.tingshu.common.service.KafkaService;
 import com.atguigu.tingshu.model.album.AlbumAttributeValue;
 import com.atguigu.tingshu.model.album.AlbumInfo;
 import com.atguigu.tingshu.model.album.AlbumStat;
@@ -39,6 +41,8 @@ public class AlbumInfoServiceImpl extends ServiceImpl<AlbumInfoMapper, AlbumInfo
     private AlbumStatMapper albumStatMapper;
     @Autowired
     private TrackInfoMapper trackInfoMapper;
+    @Autowired
+    private KafkaService kafkaService;
     /**
      * 新增专辑
      * 1.向专辑信息表新增一条记录
@@ -57,7 +61,7 @@ public class AlbumInfoServiceImpl extends ServiceImpl<AlbumInfoMapper, AlbumInfo
         //1.2 部分属性赋值
         albumInfo.setUserId(userId);
         //付费类型为非免费的专辑 免费试听集数为5，试听秒数(不限制)
-        if(!SystemConstant.ALBUM_PAY_TYPE_FREE.equals(albumInfo.getPayType())){
+        if (!SystemConstant.ALBUM_PAY_TYPE_FREE.equals(albumInfo.getPayType())) {
             albumInfo.setTracksForFree(5);
         }
         //目前没有平台审核端暂时写为通过
@@ -68,7 +72,7 @@ public class AlbumInfoServiceImpl extends ServiceImpl<AlbumInfoMapper, AlbumInfo
         //2.向专辑属性关系表新增若干条记录
         List<AlbumAttributeValueVo> albumAttributeValueVoList = albumInfoVo.getAlbumAttributeValueVoList();
         //2.1.遍历VO集合 将VO转为PO
-        if(CollectionUtil.isNotEmpty(albumAttributeValueVoList)){
+        if (CollectionUtil.isNotEmpty(albumAttributeValueVoList)) {
             albumAttributeValueVoList.forEach(albumAttributeValueVo -> {
                 AlbumAttributeValue albumAttributeValue = BeanUtil.copyProperties(albumAttributeValueVo, AlbumAttributeValue.class);
                 //2.2.关联专辑ID
@@ -78,10 +82,14 @@ public class AlbumInfoServiceImpl extends ServiceImpl<AlbumInfoMapper, AlbumInfo
             });
         }
         //3.向专辑统计表中新增四条记录(播放数，订阅数，购买数，评论数)
-        this.saveAlbumStat(albumId,SystemConstant.ALBUM_STAT_PLAY);
-        this.saveAlbumStat(albumId,SystemConstant.ALBUM_STAT_SUBSCRIBE);
-        this.saveAlbumStat(albumId,SystemConstant.ALBUM_STAT_BROWSE);
-        this.saveAlbumStat(albumId,SystemConstant.ALBUM_STAT_COMMENT);
+        this.saveAlbumStat(albumId, SystemConstant.ALBUM_STAT_PLAY);
+        this.saveAlbumStat(albumId, SystemConstant.ALBUM_STAT_SUBSCRIBE);
+        this.saveAlbumStat(albumId, SystemConstant.ALBUM_STAT_BROWSE);
+        this.saveAlbumStat(albumId, SystemConstant.ALBUM_STAT_COMMENT);
+        //4.发送mq消息通知搜索服务进行上架专辑 审核通过以后才上架专辑
+        if ("1".equals(albumInfo.getIsOpen())) {
+            kafkaService.sendMessage(KafkaConstant.QUEUE_ALBUM_UPPER, albumId.toString());
+        }
     }
     /**
      * 初始化保存专辑统计信息
@@ -134,6 +142,7 @@ public class AlbumInfoServiceImpl extends ServiceImpl<AlbumInfoMapper, AlbumInfo
         LambdaQueryWrapper<TrackInfo>  trackInfoLambdaQueryWrapper = new LambdaQueryWrapper<>();
         trackInfoLambdaQueryWrapper.eq(TrackInfo::getAlbumId,id);
         trackInfoMapper.delete(trackInfoLambdaQueryWrapper);
+            kafkaService.sendMessage(KafkaConstant.QUEUE_ALBUM_LOWER, id.toString());
     }
     /**
      * 根据专辑ID查询专辑信息包含专辑属性列表
@@ -183,6 +192,13 @@ public class AlbumInfoServiceImpl extends ServiceImpl<AlbumInfoMapper, AlbumInfo
                 albumAttributeValue.setAlbumId(id);
                 albumAttributeValueMapper.insert(albumAttributeValue);
             });
+        }
+        //修改同时判断发送什么消息
+        if ("1".equals(albumInfo.getIsOpen())) {
+            kafkaService.sendMessage(KafkaConstant.QUEUE_ALBUM_UPPER,id.toString());
+        }
+        if ("0".equals(albumInfo.getIsOpen())) {
+            kafkaService.sendMessage(KafkaConstant.QUEUE_ALBUM_LOWER, id.toString());
         }
     }
 

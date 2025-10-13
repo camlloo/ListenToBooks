@@ -4,9 +4,8 @@ import cn.hutool.core.collection.CollectionUtil;
 import com.alibaba.fastjson.JSONObject;
 import com.atguigu.tingshu.album.mapper.*;
 import com.atguigu.tingshu.album.service.BaseCategoryService;
-import com.atguigu.tingshu.model.album.BaseAttribute;
-import com.atguigu.tingshu.model.album.BaseCategory1;
-import com.atguigu.tingshu.model.album.BaseCategoryView;
+import com.atguigu.tingshu.model.album.*;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -96,5 +95,67 @@ public class BaseCategoryServiceImpl extends ServiceImpl<BaseCategory1Mapper, Ba
     @Override
     public List<BaseAttribute> getAttributeByCategory1Id(Long category1Id) {
         return baseAttributeMapper.getAttributeByCategory1Id(category1Id);
+    }
+
+    @Override
+    public BaseCategoryView getCategoryViewBy3Id(Long category3Id) {
+        return baseCategoryViewMapper.selectById(category3Id);
+    }
+
+    @Override
+    public List<BaseCategory3> getTop7BaseCategory3(Long category1Id) {
+        //1.根据一级分类ID查询二级分类ID集合
+        LambdaQueryWrapper<BaseCategory2> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(BaseCategory2::getCategory1Id,category1Id);
+        queryWrapper.select(BaseCategory2::getId);
+        List<BaseCategory2> baseCategory2List = baseCategory2Mapper.selectList(queryWrapper);
+        //2.根据二级分类ID查询三级分类列表
+        if(CollectionUtil.isNotEmpty(baseCategory2List)){
+            List<Long> category2IdList = baseCategory2List.stream().map(BaseCategory2::getId).collect(Collectors.toList());
+            LambdaQueryWrapper<BaseCategory3> baseCategory3LambdaQueryWrapper = new LambdaQueryWrapper<>();
+            baseCategory3LambdaQueryWrapper.in(BaseCategory3::getCategory2Id,category2IdList);
+            baseCategory3LambdaQueryWrapper.orderByAsc(BaseCategory3::getId);
+            baseCategory3LambdaQueryWrapper.last("limit 7");
+            return baseCategory3Mapper.selectList(baseCategory3LambdaQueryWrapper);
+        }
+        return null;
+    }
+
+    @Override
+    public JSONObject getCategoryListByCategory1Id(Long category1Id) {
+        //1.根据一级分类ID查询到一级分类信息
+        BaseCategory1 baseCategory1 = baseCategory1Mapper.selectById(category1Id);
+        //1.1 构建一级分类对象
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("categoryId", baseCategory1.getId());
+        jsonObject.put("categoryName", baseCategory1.getName());
+        //2.根据一级分类ID查询二级分类列表
+        LambdaQueryWrapper<BaseCategory2> baseCategory2LambdaQueryWrapper = new LambdaQueryWrapper<>();
+        baseCategory2LambdaQueryWrapper.eq(BaseCategory2::getCategory1Id, category1Id);
+        List<BaseCategory2> baseCategory2List = baseCategory2Mapper.selectList(baseCategory2LambdaQueryWrapper);
+        if (CollectionUtil.isNotEmpty(baseCategory2List)) {
+            List<JSONObject> category2List = baseCategory2List.stream().map(baseCategory2 -> {
+                JSONObject jsonObject2 = new JSONObject();
+                jsonObject2.put("categoryId", baseCategory2.getId());
+                jsonObject2.put("categoryName", baseCategory2.getName());
+
+                //3.根据二级分类ID查询三级分类列表
+                LambdaQueryWrapper<BaseCategory3> baseCategory3LambdaQueryWrapper = new LambdaQueryWrapper<>();
+                baseCategory3LambdaQueryWrapper.eq(BaseCategory3::getCategory2Id, baseCategory2.getId());
+                List<BaseCategory3> baseCategory3List = baseCategory3Mapper.selectList(baseCategory3LambdaQueryWrapper);
+                if (CollectionUtil.isNotEmpty(baseCategory3List)) {
+                    List<JSONObject> category3List = baseCategory3List.stream().map(baseCategory3 -> {
+                        JSONObject jsonObject3 = new JSONObject();
+                        jsonObject3.put("categoryId", baseCategory3.getId());
+                        jsonObject3.put("categoryName", baseCategory3.getName());
+                        return jsonObject3;
+                    }).collect(Collectors.toList());
+                    jsonObject2.put("categoryChild", category3List);
+                }
+                return jsonObject2;
+            }).collect(Collectors.toList());
+            jsonObject.put("categoryChild", category2List);
+        }
+        return jsonObject;
     }
 }

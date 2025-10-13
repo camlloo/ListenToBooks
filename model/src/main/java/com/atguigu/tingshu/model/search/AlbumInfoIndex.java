@@ -29,7 +29,7 @@ public class AlbumInfoIndex implements Serializable {
 
     @Field(type = FieldType.Text, analyzer = "ik_max_word")
     private String albumIntro;
-
+    //主播名字
     @Field(type = FieldType.Keyword)
     private String announcerName;
 

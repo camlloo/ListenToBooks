@@ -17,6 +17,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @Tag(name = "专辑管理")
 @RestController
@@ -71,7 +72,7 @@ public class AlbumInfoApiController {
      * /api/album/albumInfo/getAlbumInfo/{id}
      * 根据id查询专辑信息
      */
-    @KingLogin
+   // @KingLogin
     @Operation(summary = "根据id查询编辑信息")
     @GetMapping("/albumInfo/getAlbumInfo/{id}")
     public Result<AlbumInfo> getAlbumInfo(@PathVariable Long id) {

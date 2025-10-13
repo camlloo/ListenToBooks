@@ -21,6 +21,7 @@
                ba.category1_id,
                ba.attribute_name,
                bav.id base_attr_value_id,
+               bav.attribute_id,
                bav.value_name
         FROM base_attribute ba
                  INNER JOIN
